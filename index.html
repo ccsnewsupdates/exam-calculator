@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Exam Result Calculator</title>
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    h2 { margin-top: 20px; }
+    input { margin: 5px; width: 80px; padding: 5px; }
+    button { padding: 10px; margin: 10px; }
+    .result { margin-top: 20px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Exam Result Calculator</h1>
+
+  <h2>Major Subjects (up to 6)</h2>
+  <div id="majors"></div>
+
+  <h2>Minor Subject (Optional)</h2>
+  Ext: <input type="number" id="minorExt" placeholder="0-75">
+  Int: <input type="number" id="minorInt" placeholder="0-25"><br>
+
+  <h2>Co-Curricular (Optional)</h2>
+  Ext: <input type="number" id="coExt" placeholder="0-75">
+  Int: <input type="number" id="coInt" placeholder="0-25"><br>
+
+  <h2>Skill Development (Optional)</h2>
+  Marks (out of 100): <input type="number" id="skill" placeholder="0-100"><br>
+
+  <button onclick="calculateResult()">Calculate Result</button>
+
+  <div class="result" id="output"></div>
+
+  <script>
+    // Generate Major subject input fields
+    let majorsDiv = document.getElementById("majors");
+    for(let i=1;i<=6;i++){
+      majorsDiv.innerHTML += 
+        "Major "+i+" Ext:<input type='number' id='majExt"+i+"' placeholder='0-75'> " +
+        "Int:<input type='number' id='majInt"+i+"' placeholder='0-25'><br>";
+    }
+
+    function calculateResult(){
+      let graceLeft = 5, subjectsWithGrace = 0;
+      let subjectResults = [];
+      let overall = "PASS";
+
+      function checkMajorMinor(ext, intr, name){
+        let total = ext+intr;
+        if(ext>=25 && total>=33){
+          return {status:"Pass"};
+        } else {
+          // grace check
+          if(ext<25){
+            let needExt = 25 - ext;
+            if(needExt<=graceLeft && subjectsWithGrace<3 && total+needExt>=33){
+              graceLeft -= needExt; subjectsWithGrace++;
+              return {status:"Pass (Grace)"};
+            }
+          }
+          return {status:"Fail"};
+        }
+      }
+
+      // Majors
+      for(let i=1;i<=6;i++){
+        let ext = parseInt(document.getElementById("majExt"+i).value)||0;
+        let intr = parseInt(document.getElementById("majInt"+i).value)||0;
+        if(ext+intr>0){
+          let res = checkMajorMinor(ext,intr,"Major "+i);
+          subjectResults.push("Major "+i+": "+res.status);
+          if(res.status.includes("Fail")) overall = "FAIL";
+        }
+      }
+
+      // Minor
+      let minExt = parseInt(document.getElementById("minorExt").value)||0;
+      let minInt = parseInt(document.getElementById("minorInt").value)||0;
+      if(minExt+minInt>0){
+        let res = checkMajorMinor(minExt,minInt,"Minor");
+        subjectResults.push("Minor: "+res.status);
+        if(res.status.includes("Fail")) overall = "FAIL";
+      }
+
+      // Co-curricular
+      let coExt = parseInt(document.getElementById("coExt").value)||0;
+      let coInt = parseInt(document.getElementById("coInt").value)||0;
+      if(coExt+coInt>0){
+        let total = coExt+coInt;
+        if(total>=40){
+          subjectResults.push("Co-curricular: Pass");
+        } else {
+          let need = 40-total;
+          if(need<=graceLeft && subjectsWithGrace<3){
+            graceLeft -= need; subjectsWithGrace++;
+            subjectResults.push("Co-curricular: Pass (Grace)");
+          } else {
+            subjectResults.push("Co-curricular: Fail");
+            overall = "FAIL";
+          }
+        }
+      }
+
+      // Skill Development
+      let skill = parseInt(document.getElementById("skill").value)||0;
+      if(skill>0){
+        if(skill>=40){
+          subjectResults.push("Skill Development: Pass");
+        } else {
+          subjectResults.push("Skill Development: Fail");
+          overall = "FAIL";
+        }
+      }
+
+      document.getElementById("output").innerHTML = 
+        subjectResults.join("<br>") + "<hr>" +
+        "<strong>Final Result: "+overall+"</strong>";
+    }
+  </script>
+</body>
+</html>
